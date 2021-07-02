@@ -1,0 +1,1273 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <locale.h>
+#include <time.h>
+
+//delay
+void delay(unsigned int secs);
+
+//estruturas:
+typedef struct CursosEmpresa
+{
+    char nome[30];
+    char area[50];
+    int qtdHoras;
+    int vagas;
+    int id;
+    _Bool preenchido;
+} CursosEmpresa;
+
+typedef struct CursosUsuario
+{
+    char nome[30];
+    char area[50];
+    int qtdHorasFeitas, id;
+    int qtdHorasaFazer;
+    _Bool preenchido, certificado;
+} CursosUsuario;
+
+typedef struct Usuario
+{
+    int id, idade;
+    char nome[30];
+    char cpf[15];
+    char area[50];
+    char telefone[30];
+    char nomeUsuario[30];
+    char senha[30];
+    int flagCurso;
+    CursosUsuario cUser[3];
+} Usuario;
+
+typedef struct Empresa
+{
+    char nome[30];
+    char CNPJ[20];
+    char area[50];
+    char senha[15];
+    int id;
+    int flagCurso;
+    CursosEmpresa cCompany[3];
+} Empresa;
+
+// Declaração de Funções
+
+//menus{
+
+int menuInicial();
+int menuUsuario();
+int menuEmpresa();
+int menuCursosUsuario(int id);
+int menuCursosEmpresa(int id);
+
+//menus }
+
+
+//areas{
+
+//USUARIO
+void areaUsuario();
+void mostraCursoUsuario(int id);
+void excluiCursoUsuario(int id);
+void assistirAula(int id);
+void verifCurso(int id);
+void InformaCertificado(int id);
+CursosUsuario cursoVazioUsuario();
+Usuario cadastroNovoUsuario();
+CursosUsuario adqCurso(int id);
+
+//EMPRESA
+int menuCursosEmpresas(int id) ;
+void menuAreaEmpresa(int id);
+void areaEmpresa();
+void mostraCursoEmpresa(int id);
+void excluirCursoEmpresa(int id);
+void disponibilizaCertificado(int id);
+CursosEmpresa ofertaCurso(int id);
+CursosEmpresa cursoVazio();
+Empresa cadastroNovaEmpresa();
+
+//areas}
+
+//Valida
+_Bool validaNomeUsuario(char nomeUsuario[20]);
+_Bool validaSenha(char senha[20]);
+
+//LOGIN
+int LoginEmpresa();
+int LoginUsuario();
+
+// Variáveis Globais
+char areasAtuacao[6][64] = {"","UX/UI", "Tecnologia da Informacao", "Financas", "Administracao", "Engenharias"};
+
+char linha[20] = "-----------------";
+char espaco[17] = "              ";
+int idEmpresa = 0;
+int idUsuario = 0;
+int idCurso = 0;
+int cursosNoSistema = 0;
+Usuario usuarios[5];
+Empresa empresas[5];
+
+// Programa Principal
+
+int main(void)
+{
+  setlocale(LC_ALL, "portuguese_brazilian");
+    for(int i = 0; i < 5; i++)
+    {
+        strcpy(usuarios[i].nomeUsuario, "");
+        strcpy(usuarios[i].senha, "");
+        strcpy(empresas[i].area, "");
+
+        empresas[i].flagCurso = 0;
+        usuarios[i].flagCurso = 0;
+
+        for(int j = 0; j < 3; j++)
+        {
+            empresas[i].cCompany[j] = cursoVazio();
+            usuarios[i].cUser[j] = cursoVazioUsuario();
+        }
+    }
+
+
+    int opMenuInicial;
+
+    do
+    {
+        opMenuInicial = menuInicial();
+
+        if(opMenuInicial == 1)
+        {
+
+            areaUsuario();
+
+        }
+        else if(opMenuInicial == 2)
+        {
+
+            areaEmpresa();
+
+        }
+        else if(opMenuInicial == 3)
+        {
+            system("clear");
+            printf("\n\n\n\n      \t      Até Logo!\n\n");
+        }
+
+    }
+    while(opMenuInicial != 3);
+
+
+
+    return 0;
+}
+
+// Funções
+// MENUS INICIAL
+int menuInicial()
+{
+    int opcao;
+    system("clear");
+    printf("%s Bem vindo a GetBetter %s\n\n", linha, linha);
+    printf("(1) - Usuario.\n(2) - Empresa\n(3) - Sair.\nDigite sua opcao: ");
+    scanf("%i", &opcao);
+
+    while(opcao > 3 || opcao < 0)
+    {
+        system("clear");
+        printf("%s Bem vindo %s\n",linha,linha);
+        printf("Opcao invalida.\n%s",linha);
+        printf("\n(1) - Usuario.\n(2) - Empresa\n(3) - Sair.\nDigite sua opcao: ");
+        scanf("%i", &opcao);
+    }
+
+    return opcao;
+}
+
+
+// EMPRESA EMPRESA EMPRESA EMPRESA EMPRESA EMPRESA EMPRESA EMPRESA EMPRESA
+
+// MENUS
+int menuEmpresa()
+{
+    int escolha;
+    system("clear");
+    printf("%sArea da Empresa%s\n",linha,linha);
+    printf("\n(1) - Login.\n(2) - Cadastrar nova empresa.\n(3) - Sair.\nDigite sua opcao: ");
+    scanf("%i", &escolha);
+
+
+    while(escolha > 3 || escolha < 0)
+    {
+
+        system("clear");
+        printf("%sArea da Empresa%s\n",linha,linha);
+        printf("Opcao invalida.\n%s",linha);
+        printf("\n(1) - Login.\n(2) - Cadastrar nova empresa\n(3) - Sair.\nDigite sua opcao: ");
+        scanf("%i", &escolha);
+
+    }
+
+    return escolha;
+}
+
+void menuAreaEmpresa(int id)
+{
+    int opcao;
+
+    do
+    {
+        opcao = menuCursosEmpresas(id);
+
+        if(opcao == 1)
+        {
+            if(empresas[id].flagCurso >= 3)
+            {
+                printf("\nTodos os seus cursos estao preenchidos!!!\n Se excluiu algum curso recentemente, espere entrarmos em contato com voce\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+            else
+            {
+                
+              empresas[id].cCompany[empresas[id].flagCurso] = ofertaCurso(id);
+              empresas[id].flagCurso++;
+                    
+                
+            }
+        }
+        else if(opcao == 2)
+        {
+            if(empresas[id].flagCurso > 0)
+            {
+                mostraCursoEmpresa(id);
+            }
+            else
+            {
+                printf("\nA empresa ainda nao esta ofertando cursos\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }else if(opcao == 3){
+            if(empresas[id].flagCurso > 0)
+            {
+                excluirCursoEmpresa(id);
+            }
+            else
+            {
+                printf("\nA empresa ainda nao esta ofertando cursos\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }else if(opcao == 4){
+          disponibilizaCertificado(id);
+        }
+
+    }
+    while(opcao != 5);
+
+}
+
+int menuCursosEmpresas(int id)
+{
+    int escolha;
+    system("clear");
+    printf("%s Bem vindo %s %s\n", linha, empresas[id].nome,linha);
+    printf("\n(1) - Ofertar curso.\n(2) - Cursos Ofertados.\n(3) - Excluir curso.\n(4) - Disponibilizar certificados.\n(5) - Sair. \nDigite sua opcao: ");
+    scanf("%i", &escolha);
+
+    while(escolha < 0 || escolha > 5)
+    {
+        system("clear");
+        printf("%s Bem vindo %s %s\n", linha, empresas[id].nome,linha);
+        printf("\n(1) - Ofertar curso.\n(2) - Cursos Ofertados.\n(3) - Excluir curso.\n(4) - Disponibilizar certificados.\n(5) - Sair. \nOpcao Invalida. Digite sua opcao: ");
+        scanf("%i", &escolha);
+    }
+
+    return escolha;
+}
+
+
+//AREA
+void areaEmpresa()
+{
+
+    int opcaoAreaEmpresa, idAcesso;
+
+    do
+    {
+
+        opcaoAreaEmpresa = menuEmpresa();
+        if(opcaoAreaEmpresa == 1)
+        {
+            if(idEmpresa < 1)
+            {
+                printf("\nNenhuma Empresa cadastrada\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+            else
+            {
+                idAcesso = LoginEmpresa();
+                menuAreaEmpresa(idAcesso);
+            }
+        }
+        else if(opcaoAreaEmpresa == 2)
+        {
+            empresas[idEmpresa] = cadastroNovaEmpresa();
+            menuAreaEmpresa(idEmpresa - 1);
+        }
+
+    }
+    while(opcaoAreaEmpresa != 3);
+
+}
+
+//LOGIN
+int LoginEmpresa()
+{
+    system("clear");
+    int id;
+    char cnpj[20];
+    char senha[20];
+    _Bool achouCnpj = false;
+
+    printf("%s Faca seu login %s", linha, linha);
+
+    printf("\nDigite seu CNPJ: ");
+    scanf("%s", cnpj);
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(strcmp(cnpj, empresas[i].CNPJ) == 0)
+        {
+            achouCnpj = true;
+            id = empresas[i].id;
+        }
+    }
+
+    while(!achouCnpj)
+    {
+        system("clear");
+        printf("%s Faca seu login %s", linha, linha);
+        printf("\nCNPJ Inexistente");
+        printf("\nDigite seu CNPJ: ");
+        scanf("%s", cnpj);
+
+        for(int i = 0; i < 5; i++)
+        {
+            if(strcmp(cnpj, empresas[i].CNPJ) == 0)
+            {
+                achouCnpj = true;
+                id = empresas[i].id;
+            }
+        }
+    }
+
+    system("clear");
+    printf("Bem vindo %s\n", empresas[id].nome);
+
+    printf("\nDigite sua senha: ");
+    scanf("%s", senha);
+
+    while(strcmp(empresas[id].senha, senha) != 0)
+    {
+        system("clear");
+        printf("Bem vindo %s\n", empresas[id].nome);
+
+        printf("\nSenha INVALIDA\nDigite sua senha: ");
+        scanf("%s", senha);
+    }
+
+    return empresas[id].id;
+
+}
+
+//CADASTRO
+Empresa cadastroNovaEmpresa()
+{
+    system("clear");
+    int opcao;
+    printf("%s Cadastro empresa %s", linha, linha);
+    Empresa novaEmpresa;
+    novaEmpresa.id = idEmpresa;
+    idEmpresa++;
+
+    printf("\nDigite o nome da Empresa: ");
+    scanf(" %[^\n]s", novaEmpresa.nome);
+
+    printf("\nDigite seu CNPJ: ");
+    scanf("%s", novaEmpresa.CNPJ);
+
+    printf("\nCrie sua senha: ");
+    scanf("%s", novaEmpresa.senha);
+
+    while(!validaSenha(novaEmpresa.senha))
+    {
+        printf("%s Atencao %s", linha, linha);
+        printf("\nA senha da empresa deve conter entre 6 e 15 caracteres");
+        printf("\n%s%s%s",linha,linha,linha);
+        printf("\nDigite sua senha: ");
+        scanf("%s", novaEmpresa.senha);
+
+    }
+
+
+    system("clear");
+    printf("%s Cadastro empresa %s", linha, linha);
+    printf("\nQual a sua area de atuacao? ");
+
+    for(int i = 1; i < 6; i++)
+    {
+        printf("\n(%d) - %s", i, areasAtuacao[i]);
+    }
+
+    printf("\nDigite a sua area de atuacao: ");
+    scanf("%d", &opcao);
+
+    while(opcao > 5 || opcao < 1)
+    {
+        system("clear");
+        printf("%s Cadastro empresa %s", linha, linha);
+        printf("\nQual a sua area de atuaçao? ");
+
+        for(int i = 0; i < 5; i++)
+        {
+            printf("\n(%d) - %s", i, areasAtuacao[i]);
+            printf("\n(%d) - %s", i, areasAtuacao[i]);
+        }
+
+        printf("\nOpcao invalida. Digite a sua area de atuacao: ");
+        scanf("%d", &opcao);
+
+    }
+
+    strcpy(novaEmpresa.area, areasAtuacao[opcao]);
+
+    system("clear");
+
+    printf("\n\nCadastro Finalizado com sucesso.\n\n");
+    printf("Bem vindo a GetBetter. Que essas seja uma parceira de longa data :)\n\n");
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+
+    return novaEmpresa;
+}
+
+// Oferta de Curso
+
+CursosEmpresa ofertaCurso(int id)
+{
+    system("clear");
+    printf("%s Oferta de Curso %s", linha, linha);
+    CursosEmpresa novoCurso;
+
+    printf("\nQual o nome do curso: ");
+    scanf(" %[^\n]", novoCurso.nome);
+
+    printf("\nDigite a quantidade de vagas disponiveis no curso: ");
+    scanf("%d", &novoCurso.vagas);
+
+    printf("\nQuantas horas de curso: ");
+    scanf("%d", &novoCurso.qtdHoras);
+
+    novoCurso.preenchido = true;
+    novoCurso.id = idCurso;
+    idCurso++;
+
+    strcpy(novoCurso.area, empresas[id].area);
+
+    printf("\nParabens, seu curso ja esta disponivel no mercado :)\n");
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+
+    cursosNoSistema++;
+
+    return novoCurso;
+}
+
+
+void mostraCursoEmpresa(int id)
+{
+    system("clear");
+    printf("%s Cursos ofertados %s", linha, linha);
+    for(int i = 0; i < 3; i++)
+    {
+
+        if(empresas[id].cCompany[i].vagas > 0)
+        {
+            if(strcmp(empresas[id].cCompany[i].area, "") != 0)
+            {
+                printf("\nNome: %s\nVagas: %d", empresas[id].cCompany[i].nome, empresas[id].cCompany[i].vagas);
+                printf("\nArea: %s\nQuantidade de horas: %d\n",empresas[id].cCompany[i].area, empresas[id].cCompany[i].qtdHoras);
+                printf("%s%s%s\n", linha, linha, linha);
+            }
+        }
+
+    }
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(10);
+}
+
+void excluirCursoEmpresa(int id)
+{
+    system("clear");
+    printf("%s Excluir curso. %s", linha, linha);
+    _Bool printou = false;
+    int opcao;
+
+    for(int i = 0; i < 3; i++)
+    {
+
+        if(empresas[id].cCompany[i].vagas > 0)
+        {
+            if(strcmp(empresas[id].cCompany[i].area, "") != 0)
+            {
+                printf("\nId: %d", empresas[id].cCompany[i].id);
+                printf("\nNome: %s\nVagas: %d", empresas[id].cCompany[i].nome, empresas[id].cCompany[i].vagas);
+                printf("\nArea: %s\nQuantidade de horas: %d\n",empresas[id].cCompany[i].area, empresas[id].cCompany[i].qtdHoras);
+                printf("%s%s%s\n", linha, linha, linha);
+                printou = true;
+            }
+        }
+
+    }
+
+    if(!printou){
+        printf("\nVoce nao possui cursos.\n");
+        printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+        delay(5);
+        return;
+    }
+
+    printf("\nDigite o id do curso que voce deseja excluir: ");
+    scanf("%d", &opcao);
+
+    for(int i = 0; i < 5; i++){
+        for(int j = 0; j < 3; j++){
+            if(strcmp(empresas[id].cCompany[opcao].area, usuarios[i].cUser[j].area) == 0){
+                usuarios[i].cUser[j] = cursoVazioUsuario();
+            }
+        }
+    }
+
+    for(int j = 0; j < 3; j++){
+      if(opcao == empresas[id].cCompany[j].id){
+        empresas[id].cCompany[j] = cursoVazio();
+      }
+    }
+
+    printf("\n\nCurso excluido\n\n");
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+}
+
+void disponibilizaCertificado(int id)
+{
+  system("clear");
+  printf("%s Disponibilizar certificados %s", linha, linha);
+  _Bool printou = false;
+  for(int i = 0; i < 3; i++){
+    for(int j = 0; j < 3; j++){
+      if(empresas[id].cCompany[i].id == usuarios[i].cUser[j].id){
+        if(usuarios[i].cUser[j].certificado){
+          printf("\nO usuario: %s\nTelefone: %s\nCPF: %s\nConcluiu o curso e esta esperando o contado da empresa.\n", usuarios[i].nome, usuarios[i].telefone, usuarios[i].cpf);
+          printou = true;
+        }
+      }
+    }
+  }
+
+  if(!printou){
+    printf("\nNenhum usuario concluiu o curso\n");
+  }
+
+  delay(5);
+}
+
+// USUARIO USUARIO USUARIO USUARIO USUARIO USUARIO USUARIO USUARIO USUARIO
+
+// MENUS
+
+
+
+void MenuAreaUsuario(int id)
+{
+    int opcao;
+
+    do
+    {
+        opcao = menuCursosUsuario(id);
+
+        if(opcao == 1)
+        {
+            if(usuarios[id].flagCurso > 0)
+            {
+                mostraCursoUsuario(id);
+            }
+            else
+            {
+                printf("\nVoce nao possui cursos cadastrados\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }
+        else if(opcao == 2)
+        {
+            if(usuarios[id].flagCurso >= 3 )
+            {
+                printf("\nTodos os cursos preenchidos!!\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+
+            }
+            else if(usuarios[id].flagCurso >= cursosNoSistema)
+            {
+                printf("\nNao ha mais cursos disponiveis no momento!!\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+            else
+            {
+
+                usuarios[id].cUser[usuarios[id].flagCurso] = adqCurso(id);
+                usuarios[id].flagCurso++;
+
+            }
+
+        }
+        else if(opcao == 3)
+        {
+            if(usuarios[id].flagCurso > 0)
+            {
+                excluiCursoUsuario(id);
+            }
+            else
+            {
+                printf("\nVoce nao se cadastrou em nenhum curso ainda.\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }
+        else if(opcao == 4)
+        {
+            if(usuarios[id].flagCurso > 0)
+            {
+                assistirAula(id);
+            }
+            else
+            {
+                printf("\nVoce nao se cadastrou em nenhum curso ainda.\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }
+        else if(opcao == 5)
+        {
+            if(usuarios[id].flagCurso > 0)
+            {
+                InformaCertificado(id);
+            }
+            else
+            {
+                printf("\nVoce nao se cadastrou em nenhum curso ainda.\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+        }
+        verifCurso(id);
+    }
+    while(opcao != 6);
+
+}
+
+int menuUsuario()
+{
+    int escolha;
+    system("clear");
+    printf("%s Area do Usuario %s\n", linha,linha);
+    printf("\n(1) - Login.\n(2) - Novo usuario.\n(3) - Sair. \nDigite sua opcâo: ");
+    scanf("%i", &escolha);
+
+    while(escolha > 3 || escolha < 0)
+    {
+        system("clear");
+        printf("%sArea do Usuario%s\n", linha,linha);
+        printf("\n(1) - Login.\n(2) - Novo usuario \n(3) - Sair. \nOpcao Invalida. Digite sua opcâo: ");
+        scanf("%i", &escolha);
+
+    }
+
+
+    return escolha;
+}
+
+int menuCursosUsuario(int id)
+{
+    int escolha;
+    system("clear");
+    printf("%s Bem Vindo %s %s\n", linha, usuarios[id].nome,linha);
+    printf("\n(1) - Cursos adquiridos.\n(2) - Cursos disponiveis para compra.\n(3) - Cancelamento de cursos \n(4) - Assistir aula.\n(5) - Certificados.\n(6) - Sair. \nDigite sua opcao: ");
+    scanf("%i", &escolha);
+
+    while(escolha < 0 || escolha > 6)
+    {
+        system("clear");
+        printf("%s Bem Vindo %s %s\n", linha, usuarios[id].nome,linha);
+        printf("\n(1) - Cursos adquiridos.\n(2) - Cursos disponiveis para compra.\n(3) - Cancelamento de cursos \n(4) - Assistir aula.\n(5) - Certificados.\n(6) - Sair. \nOpcao invalida. Digite sua opcao: ");
+        scanf("%i", &escolha);
+    }
+    return escolha;
+}
+
+// AREA
+
+void areaUsuario()
+{
+
+    int opcaoAreaUsuario, idAcesso;
+
+    do
+    {
+
+        opcaoAreaUsuario = menuUsuario();
+        if(opcaoAreaUsuario == 1)
+        {
+            if(idUsuario < 1)
+            {
+                printf("\nNenhum usuario cadastrado!!\n");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+            else
+            {
+                idAcesso = LoginUsuario();
+                MenuAreaUsuario(idAcesso);
+            }
+
+        }
+        else if(opcaoAreaUsuario == 2)
+        {
+            if(idUsuario>4)
+            {
+                printf("\nMemoria Lotada");
+                printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+                delay(5);
+            }
+            else
+            {
+                usuarios[idUsuario] = cadastroNovoUsuario();
+                MenuAreaUsuario(idUsuario - 1);
+            }
+        }
+
+    }
+    while(opcaoAreaUsuario != 3);
+
+}
+
+// LOGIN
+int LoginUsuario()
+{
+    system("clear");
+    printf("%s Faca seu Login %s", linha, linha);
+    int id;
+    char nomeUsuario[30];
+    char senha[20];
+    _Bool achounomeUsuario = false;
+
+    printf("\nDigite seu nome de usuario: ");
+    scanf("%s", nomeUsuario);
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(strcmp(nomeUsuario, usuarios[i].nomeUsuario) == 0)
+        {
+            achounomeUsuario = true;
+            id = usuarios[i].id;
+        }
+    }
+
+    while(!achounomeUsuario)
+    {
+        system("clear");
+        printf("%s Faca seu Login %s", linha, linha);
+        printf("\nNome de usuário Inexistente");
+        printf("\nDigite seu nome de usuário: ");
+        scanf("%s", nomeUsuario);
+
+        for(int i = 0; i < 5; i++)
+        {
+            if(strcmp(nomeUsuario, usuarios[i].nomeUsuario) == 0)
+            {
+                achounomeUsuario = true;
+                id = usuarios[i].id;
+            }
+        }
+    }
+
+    system("clear");
+    printf("Bem vindo %s\n", usuarios[id].nome);
+
+    printf("\nDigite sua senha: ");
+    scanf("%s", senha);
+
+    while(strcmp(usuarios[id].senha, senha) != 0)
+    {
+        system("clear");
+        printf("Bem vindo %s\n", usuarios[id].nome);
+
+        printf("\nSenha INVALIDA\nDigite sua senha: ");
+        scanf("%s", senha);
+    }
+
+    return usuarios[id].id;
+
+}
+
+// CADASTRO
+Usuario cadastroNovoUsuario()
+{
+    system("clear");
+    printf("%s Cadastro Usuario %s", linha, linha);
+    int opcao;
+
+    Usuario novoUsuario;
+    novoUsuario.id = idUsuario;
+    idUsuario++;
+
+    printf("\nDigite o seu nome: ");
+    scanf(" %[^\n]s", novoUsuario.nome);
+
+    printf("\nDigite sua idade: ");
+    scanf("%d", &novoUsuario.idade);
+
+    printf("\nDigite seu CPF: ");
+    scanf("%s", novoUsuario.cpf);
+
+    printf("\nDigite seu Telefone: ");
+    scanf("%s", novoUsuario.telefone);
+
+    printf("\nCrie seu nome de usuario: ");
+    scanf("%s", novoUsuario.nomeUsuario);
+
+    while(!validaNomeUsuario(novoUsuario.nomeUsuario))
+    {
+        printf("%s Atencao %s", linha, linha);
+        printf("\nNome usuario existente ou maior que o permitido");
+        printf("\nO nome de usuario deve ter no maximo 15 caracteres e no minimo 5!!");
+        printf("\n%s%s%s",linha,linha,linha);
+        printf("\n\nCrie seu nome de usuario:");
+        scanf("%s", novoUsuario.nomeUsuario);
+
+    }
+
+    printf("\nCrie uma senha: ");
+    scanf("%s", novoUsuario.senha);
+
+    system("clear");
+    printf("%s Cadastro usuario %s", linha, linha);
+    printf("\nQual a sua area de atuacao?");
+
+    for(int i = 1; i < 6; i++)
+    {
+        printf("\n(%d) - %s", i, areasAtuacao[i]);
+    }
+
+    printf("\nDigite a sua area de atuacao: ");
+    scanf("%d", &opcao);
+
+    while(opcao > 5 || opcao < 1)
+    {
+        system("clear");
+        printf("%s Cadastro usuario %s", linha, linha);
+        printf("\nEscolha a sua area de atuacao: ");
+
+        for(int i = 0; i < 5; i++)
+        {
+            printf("\n(%d) - %s", i, areasAtuacao[i]);
+        }
+
+        printf("\nDigite a sua area de atuacao: ");
+        scanf("%d", &opcao);
+
+    }
+
+    strcpy(novoUsuario.area, areasAtuacao[opcao]);
+
+    printf("\nCadastro realizado com sucesso.\n");
+    printf("\nBem vindo a GetBetter. Bons Estudos, seu emprego te espera. :)\n");
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+    return novoUsuario;
+}
+
+//Curso Usuario
+CursosUsuario cursoVazioUsuario()
+{
+    CursosUsuario cursoZerado;
+
+    cursoZerado.qtdHorasaFazer = 0;
+    cursoZerado.qtdHorasFeitas = 0;
+    cursoZerado.id = 0;
+    cursoZerado.preenchido = false;
+    strcpy(cursoZerado.nome, "");
+    strcpy(cursoZerado.area, "");
+    return cursoZerado;
+}
+
+CursosUsuario adqCurso(int id)
+{
+    system("clear");
+    printf("%s Cursos disponiveis %s", linha, linha);
+    int opcao;
+    CursosUsuario novoCursoUsuario;
+    novoCursoUsuario.qtdHorasFeitas = 0;
+    novoCursoUsuario.preenchido = true;
+    novoCursoUsuario.certificado = false;
+    _Bool achouCurso = false;
+
+    for(int i = 0; i < 5; i++){
+        if(empresas[i].flagCurso > 0){
+            printf("\nEmpresa: %s\nArea: %s", empresas[i].nome, empresas[i].area);
+            printf("\nCursos: ");
+        }
+            for(int j = 0; j < 3; j++)
+            {
+                    if(strcmp(empresas[i].cCompany[j].area, "") != 0)
+                    {
+                        if(strcmp(usuarios[id].cUser[0].nome, empresas[i].cCompany[j].nome) != 0
+                                && strcmp(usuarios[id].cUser[1].nome, empresas[i].cCompany[j].nome) != 0
+                                && strcmp(usuarios[id].cUser[2].nome, empresas[i].cCompany[j].nome) != 0)
+                        {
+                            printf("\n\nOpcao: %d", empresas[i].cCompany[j].id);
+                            printf("\nCurso: %s", empresas[i].cCompany[j].nome);
+                            printf("\nHoras necessarias: %d", empresas[i].cCompany[j].qtdHoras);
+                            printf("\nArea: %s", empresas[i].cCompany[j].area);
+                            printf("\n%s%s%s\n", linha, linha, linha);
+                        }
+
+                    }
+            }
+    }
+
+    printf("\nDigite a opcao seu curso: ");
+    scanf("%d", &opcao);
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(empresas[i].flagCurso > 0)
+        {
+            for(int j = 0; j < 3; j++)
+            {
+                if(empresas[i].cCompany[j].id == opcao)
+                {
+                    strcpy(novoCursoUsuario.nome, empresas[i].cCompany[j].nome);
+                    strcpy(novoCursoUsuario.area, empresas[i].cCompany[j].area);
+                    novoCursoUsuario.id = empresas[i].cCompany[j].id;
+                    novoCursoUsuario.qtdHorasaFazer = empresas[i].cCompany[j].qtdHoras;
+                    achouCurso = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    while(!achouCurso){
+        printf("\nOpcao invalida. Digite a opcao seu curso: ");
+        scanf("%d", &opcao);
+
+        for(int i = 0; i < 5; i++)
+        {
+            if(empresas[i].flagCurso > 0)
+            {
+                for(int j = 0; j < 3; j++)
+                {
+                    if(empresas[i].cCompany[j].id == opcao)
+                    {
+                        strcpy(novoCursoUsuario.nome, empresas[i].cCompany[j].nome);
+                        strcpy(novoCursoUsuario.area, empresas[i].cCompany[j].area);
+                        novoCursoUsuario.id = empresas[i].cCompany[j].id;
+                        novoCursoUsuario.qtdHorasaFazer = empresas[i].cCompany[j].qtdHoras;
+                        achouCurso = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return novoCursoUsuario;
+}
+
+void mostraCursoUsuario(int id)
+{
+    system("clear");
+    printf("%s Seus Cursos %s", linha, linha);
+    _Bool printou = false;
+    for(int i = 0; i < 3; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(strcmp(usuarios[id].cUser[i].area, "")!=0)
+            {
+                printf("\n");
+                printf("\nNome: %s\n", usuarios[id].cUser[i].nome);
+                printf("\nArea: %s\nQuantidade de horas feitas: %d/%d\n",usuarios[id].cUser[i].area, usuarios[id].cUser[i].qtdHorasFeitas, usuarios[id].cUser[i].qtdHorasaFazer);
+                printf("\n%s%s%s\n", linha, linha, linha);
+                printou = true;
+            }
+        }
+
+    }
+
+    if(!printou){
+        printf("\nSeus cursos foram removidos pela empresa.\n");
+        printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+        delay(5);
+        return;
+    }
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+}
+
+//***************************************
+void excluiCursoUsuario(int id)
+{
+    system("clear");
+    printf("%s Excluir curso :( %s", linha, linha);
+    int opcao, confirmaExclusao;
+    float concluido,concluir, porcent;
+    _Bool achouId = false;
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(strcmp(usuarios[id].cUser[i].area, "") != 0)
+            {
+                printf("\nid) - %d\nNome: %s\n", usuarios[id].cUser[i].id, usuarios[id].cUser[i].nome);
+                printf("\nQuantidade de horas feitas %d/%d", usuarios[id].cUser[i].qtdHorasFeitas, usuarios[id].cUser[i].qtdHorasaFazer);
+                printf("\n%s%s%s\n", linha, linha, linha);
+            }
+        }
+    }
+
+    printf("\nDigite o id do curso que voce gostaria de excluir: ");
+    scanf("%d", &opcao );
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(opcao == usuarios[id].cUser[i].id)
+            {
+                concluido = usuarios[id].cUser[i].qtdHorasFeitas;
+                concluir = usuarios[id].cUser[i].qtdHorasaFazer;
+                porcent = (concluido/concluir)*100;
+                printf("Voce ja concluiu %.2f%% desse curso", porcent);
+                printf("\nVoce realmente deseja excluir esse curso?\n1) - Sim.\n2) - Nao.\nDigite sua opcao: ");
+                scanf("%d", &confirmaExclusao);
+
+                if(confirmaExclusao == 1)
+                {
+                    usuarios[id].flagCurso--;
+                    usuarios[id].cUser[i] = cursoVazioUsuario();
+                    achouId = true;
+                    break;
+                }
+                else
+                {
+                    printf("\nBoa escolha :)\n");
+                    achouId = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    while(!achouId)
+    {
+        printf("\nId Invalido");
+        printf("\nDigite o id do curso que você gostaria de excluir ou digite ( -1 ) para sair: ");
+        scanf("%d", &opcao );
+
+        if(opcao < 0) break;
+
+        for(int i = 0; i < 3; i++)
+        {
+            if(usuarios[id].cUser[i].preenchido != false)
+            {
+                if(opcao == usuarios[id].cUser[i].id)
+                {
+                    printf("Você ja concluiu %d%% desse curso", (usuarios[id].cUser[i].qtdHorasFeitas/usuarios[id].cUser[i].qtdHorasaFazer)*100);
+                    printf("\nVoce realmente deseja excluir esse curso?\n1) - Sim.\n2) - Não.\nDigite sua opcao: ");
+                    scanf("%d", &confirmaExclusao);
+
+                    if(confirmaExclusao == 1)
+                    {
+                        usuarios[id].cUser[i] = cursoVazioUsuario();
+                        achouId = true;
+                    }
+                    else
+                    {
+                        printf("\nBoa escolha :P\n");
+                        achouId = true;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+void assistirAula(int id)
+{
+
+    system("clear");
+    printf("%s Assistir aula %s", linha, linha);
+    int opcao;
+    _Bool achouId = false;
+    _Bool printou = false;
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(strcmp(usuarios[id].cUser[i].area, "") != 0)
+            {
+                if(!usuarios[id].cUser[i].certificado)
+                {
+                    printf("\nid) - %d\nNome: %s\n", usuarios[id].cUser[i].id, usuarios[id].cUser[i].nome);
+                    printf("Aulas assistidas: %d/%d", usuarios[id].cUser[i].qtdHorasFeitas, usuarios[id].cUser[i].qtdHorasaFazer);
+                    printf("\n%s%s%s\n", linha, linha, linha);
+                    printou = true;
+                }
+            }
+        }
+    }
+
+    if(!printou)
+    {
+        printf("\nVoce ja assistiu todas as suas aulas\n");
+        printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+        delay(5);
+        return;
+    }
+
+    printf("\nDigite o id do curso que voce gostaria de assistir a aula: ");
+    scanf("%d", &opcao );
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(opcao == usuarios[id].cUser[i].id)
+            {
+                achouId = true;
+                usuarios[id].cUser[i].qtdHorasFeitas++;
+            }
+        }
+    }
+
+    while(!achouId)
+    {
+        printf("\nId Invalido");
+        printf("\nDigite o id do curso que você gostaria de assistir a aula ou ( -1 ) para desistir: ");
+        scanf("%d", &opcao );
+
+        if(opcao < 0) break;
+
+        for(int i = 0; i < 3; i++)
+        {
+            if(usuarios[id].cUser[i].preenchido != false && usuarios[id].cUser[i].certificado != true)
+            {
+                if(opcao == usuarios[id].cUser[i].id)
+                {
+                    achouId = true;
+                    usuarios[id].cUser[i].qtdHorasFeitas++;
+                }
+            }
+        }
+    }
+
+    printf("\nAssistindo a aula....\n");
+
+    delay(5);
+}
+
+void verifCurso(int id)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        if(usuarios[id].cUser[i].preenchido != false)
+        {
+            if(usuarios[id].cUser[i].qtdHorasFeitas >= usuarios[id].cUser[i].qtdHorasaFazer)
+            {
+                usuarios[id].cUser[i].certificado = true;
+            }
+        }
+    }
+}
+
+void InformaCertificado(int id)
+{
+    system("clear");
+    printf("%s Certificados %s", linha, linha);
+    _Bool printou = false;
+    for(int i = 0; i < 3; i++)
+    {
+        if(strcmp(usuarios[id].cUser[i].area, "") != 0)
+        {
+            if(usuarios[id].cUser[i].certificado)
+            {
+                printf("\nParabens!! Voce concluiu o curso %s\nA empresa entrara em contato com voce!!\nFique atento ao seu email\n", usuarios[id].cUser[i].nome);
+                printou = true;
+            }
+        }
+    }
+
+    if(!printou)
+    {
+        printf("\nVoce nao possui certificados disponiveis.\n");
+    }
+    printf("\n\n\nAguarde, o programa seguirá em poucos segundos...\n");
+    delay(5);
+}
+
+//VALIDA
+
+_Bool validaSenha(char senha[20])
+{
+    if(strlen(senha) < 6 || strlen(senha) > 15) return false;
+    return true;
+}
+
+_Bool validaNomeUsuario(char nome[20])
+{
+    if(strlen(nome) < 5 || strlen(nome) > 15) return false;
+    return true;
+}
+
+// zera curso
+
+CursosEmpresa cursoVazio()
+{
+    CursosEmpresa cursoZerado;
+
+    cursoZerado.qtdHoras = 0;
+    cursoZerado.vagas = 0;
+    cursoZerado.preenchido = false;
+    strcpy(cursoZerado.nome, "");
+    strcpy(cursoZerado.area, "");
+
+    return cursoZerado;
+}
+
+void delay(unsigned int secs) {
+  unsigned int end = time(0) + secs;
+  while (time(0) < end);
+}
