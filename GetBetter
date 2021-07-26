@@ -466,7 +466,7 @@ CursosEmpresa ofertaCurso(int id)
     CursosEmpresa novoCurso;
 
     printf("\nQual o nome do curso: ");
-    scanf(" %[^\n]", novoCurso.nome);
+    scanf(" %[^\n]s", novoCurso.nome);
 
     printf("\nDigite a quantidade de vagas disponiveis no curso: ");
     scanf("%d", &novoCurso.vagas);
